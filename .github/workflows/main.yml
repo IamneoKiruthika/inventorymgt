@@ -17,7 +17,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'zulu'  # Use appropriate JDK distribution
-        java-version: '11'    # Adjust the version as needed
+        java-version: '17'    # Adjust the version as needed
 
     - name: Build with Maven
       run: mvn clean package -DskipTests
