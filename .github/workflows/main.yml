@@ -25,10 +25,11 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'zulu'  # Use appropriate JDK distribution
-        java-version: '11'    # Adjust the version as needed
+        java-version: '17'    # Adjust the version as needed
 
     - name: Build with Maven
       run: mvn clean package -DskipTests
+      working-directory: ./springapp  # Specify the working directory
 
     - name: 'Login to Azure CLI'
       uses: azure/login@v1
@@ -37,7 +38,7 @@ jobs:
 
     - name: 'Deploy to Azure Web App'
       run: |
-        az webapp deploy --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_WEBAPP_NAME --src-path ./target/*.war --type war
+        az webapp deploy --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_WEBAPP_NAME --src-path ./springapp/target/*.war --type war
 
     - name: Verify Deployment
       run: |
