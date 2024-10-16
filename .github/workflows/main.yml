@@ -5,14 +5,6 @@ on:
     branches:
       - main  # Adjust this branch name if your default branch is different
 
-env:
-  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
-  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,7 +17,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'zulu'  # Use appropriate JDK distribution
-        java-version: '17'    # Adjust the version as needed
+        java-version: '11'    # Adjust the version as needed
 
     - name: Build with Maven
       run: mvn clean package -DskipTests
@@ -38,8 +30,11 @@ jobs:
 
     - name: 'Deploy to Azure Web App'
       run: |
-        az webapp deploy --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_WEBAPP_NAME --src-path ./springapp/target/*.war --type war
+        az webapp deploy --resource-group $(echo ${{ secrets.AZURE_CREDENTIALS }} | jq -r .resourceGroup) \
+                         --name $(echo ${{ secrets.AZURE_CREDENTIALS }} | jq -r .webAppName) \
+                         --src-path ./springapp/target/*.jar --type jar
 
     - name: Verify Deployment
       run: |
-        az webapp show --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_WEBAPP_NAME
+        az webapp show --resource-group $(echo ${{ secrets.AZURE_CREDENTIALS }} | jq -r .resourceGroup) \
+                        --name $(echo ${{ secrets.AZURE_CREDENTIALS }} | jq -r .webAppName)
