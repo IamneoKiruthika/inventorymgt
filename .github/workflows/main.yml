@@ -1,37 +1,44 @@
-name: Deploy to Azure Web App
+name: Azure Web App Java CI/CD
 
 on:
   push:
     branches:
-      - main  # or your default branch
+      - main  # Adjust this branch name if your default branch is different
+
+env:
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-    - name: Set up Java version
-      uses: actions/setup-java@v2
+    - name: Set up Java
+      uses: actions/setup-java@v3
       with:
-        java-version: '17'
-        distribution: 'adopt'
-
-    - name: Debug - Print current directory
-      run: pwd
-
-    - name: Debug - List directory contents
-      run: ls -R
+        distribution: 'zulu'  # Use appropriate JDK distribution
+        java-version: '11'    # Adjust the version as needed
 
     - name: Build with Maven
-      run: |
-        cd inventory-main-github/inventory-main/springapp
-        mvn clean install
+      run: mvn clean package -DskipTests
 
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
+    - name: 'Login to Azure CLI'
+      uses: azure/login@v1
       with:
-        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: ${{ github.workspace }}/inventory-main-github/inventory-main/springapp/target/*.jar
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Deploy to Azure Web App'
+      run: |
+        az webapp deploy --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_WEBAPP_NAME --src-path ./target/*.war --type war
+
+    - name: Verify Deployment
+      run: |
+        az webapp show --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_WEBAPP_NAME
