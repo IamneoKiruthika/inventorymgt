@@ -3,7 +3,7 @@ name: Azure Web App Java CI/CD
 on:
   push:
     branches:
-      - main  # Adjust this branch name if your default branch is different
+      - main  # Adjust this if your default branch is different
 
 jobs:
   build:
@@ -17,7 +17,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'zulu'  # Use appropriate JDK distribution
-        java-version: '17'     # Change the version to 17
+        java-version: '17'    # Ensure this matches your project setup
 
     - name: Build with Maven
       run: mvn clean package -DskipTests
